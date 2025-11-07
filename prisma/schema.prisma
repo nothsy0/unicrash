@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  age       Int?
+  gender    String?
+  university String?
+  department String?
+  bio       String?
+  profileImage String?
+  photos    String? // JSON array of photo URLs
+  studentDocument String? // Öğrenci belgesi dosya yolu
+  isVerified Boolean @default(false) // Admin onayı
+  isActive   Boolean @default(true)
+  freeLikesUsed Int @default(0) // Kullanılan ücretsiz beğeniler (max 10)
+  paidLikesUsed Int @default(0) // Reklam sonrası kullanılan beğeniler (her reklam 3 beğeni verir)
+  superLikesUsed Int @default(0) // Kullanılan Super Like'lar (günlük limit)
+  superLikesResetAt DateTime? // Super Like reset zamanı
+  lastAdShown DateTime? // Son reklam gösterilme zamanı (15 dakika kontrolü için)
+  lastSeen DateTime? // Son görülme zamanı
+  boostExpiresAt DateTime? // Boost bitiş zamanı
+  boostCount Int @default(0) // Kullanılan boost sayısı
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  interests UserInterest[]
+  swipes    Swipe[] @relation("UserSwipes")
+  swipedOn  Swipe[] @relation("UserSwipedOn")
+  matches   Match[] @relation("User1")
+  matches2  Match[] @relation("User2")
+  messages  Message[]
+  profileViews ProfileView[] @relation("ProfileViews")
+  viewedProfiles ProfileView[] @relation("ViewedProfiles")
+
+  @@map("users")
+}
+
+model Interest {
+  id          String @id @default(cuid())
+  name        String @unique
+  category    String // "hobiler", "müzik", "spor", "yemek", vb.
+  emoji       String?
+  createdAt   DateTime @default(now())
+
+  // İlişkiler
+  users       UserInterest[]
+
+  @@map("interests")
+}
+
+model UserInterest {
+  id         String @id @default(cuid())
+  userId     String
+  interestId String
+  createdAt  DateTime @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest  @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interestId])
+  @@map("user_interests")
+}
+
+model Swipe {
+  id        String   @id @default(cuid())
+  swiperId  String
+  swipedId  String
+  isLike    Boolean
+  isSuperLike Boolean @default(false) // Super Like özelliği
+  createdAt DateTime @default(now())
+
+  swiper    User @relation("UserSwipes", fields: [swiperId], references: [id], onDelete: Cascade)
+  swiped    User @relation("UserSwipedOn", fields: [swipedId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipedId])
+  @@map("swipes")
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  adWatched String? // JSON: {"user1Id": true, "user2Id": false} formatında
+  createdAt DateTime @default(now())
+
+  user1     User @relation("User1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2     User @relation("User2", fields: [user2Id], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@unique([user1Id, user2Id])
+  @@map("matches")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  senderId  String
+  content   String
+  isRead    Boolean  @default(false) // Mesaj okundu mu?
+  readAt    DateTime? // Mesaj okunma zamanı
+  createdAt DateTime @default(now())
+
+  match     Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender    User  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  viewerId  String   // Profili görüntüleyen
+  viewedId  String   // Görüntülenen profil
+  createdAt DateTime @default(now())
+
+  viewer    User @relation("ProfileViews", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewed    User @relation("ViewedProfiles", fields: [viewedId], references: [id], onDelete: Cascade)
+
+  @@unique([viewerId, viewedId])
+  @@map("profile_views")
+}
