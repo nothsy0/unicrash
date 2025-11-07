@@ -5,7 +5,7 @@ UniCrash, sadece üniversite öğrencilerinin katılabileceği bir dating uygula
 ## 🚀 Özellikler
 
 - **Öğrenci Doğrulaması**: Kayıt sırasında öğrenci belgesi yükleme ve admin onayı
-- **İlgi Alanları**: Tinder benzeri ilgi alanı seçimi (hobiler, spor, müzik, yemek, vb.)
+- **İlgi Alanları**: Unicrash ilgi alanı seçimi (hobiler, spor, müzik, yemek, vb.)
 - **Eşleşme Sistemi**: Beğeni/beğenmeme ile eşleşme
 - **Sohbet**: Eşleşen kullanıcılar arasında mesajlaşma
 - **Modern UI**: Tailwind CSS ile responsive tasarım
